@@ -1,0 +1,557 @@
+# Broadsea .env Configuration Guide
+
+## Section 1: Basic Configuration
+
+These settings control core Broadsea functionality:
+
+1. `BROADSEA_HOST`: 
+   - Set to "127.0.0.1" for local deployment
+   - For remote servers, use IP address or hostname (without http/https)
+   - Example: "my-server.company.com"
+
+2. `HTTP_TYPE`:
+   - Use "http" for standard deployment
+   - Use "https" if you have SSL certificates configured
+
+3. `BROADSEA_CERTS_FOLDER`:
+   - Only required if using HTTPS
+   - Set to folder path containing "broadsea.crt" and "broadsea.key"
+   - Example: "./certs"
+
+4. `DOCKER_ARCH`:
+   - For Mac Silicon (M1/M2) users: set to "linux/arm64"
+   - For all others: leave as "linux/amd64"
+
+## Section 2: Atlas Configuration
+
+Basic Atlas web application settings:
+
+1. `ATLAS_VERSION`:
+   - Set to desired Atlas version
+   - Example: "2.12.0"
+
+2. `ATLAS_BASE_URL`:
+   - Usually "/atlas"
+   - Change only if you need a different URL path
+
+3. `ATLAS_USER_AUTH_ENABLED`:
+   - Set to "true" to enable user authentication
+   - Set to "false" for development/testing
+
+## Section 3: WebAPI Configuration 
+
+Database connection settings for WebAPI:
+
+1. `WEBAPI_VERSION`:
+   - Set to match your Atlas version
+   - Example: "2.12.0"
+
+2. For each database connection (CDM and Results), configure:
+   - `*_HOST`: Database server address
+   - `*_PORT`: Database port
+   - `*_DATABASE`: Database name
+   - `*_SCHEMA`: Schema name
+   - `*_USER`: Username
+   - `*_PASSWORD_FILE`: Path to file containing password
+
+3. `WEBAPI_ADDITIONAL_JDBC_FILE_PATH`:
+   - Only needed for special drivers (e.g., Snowflake)
+   - Set to path of JDBC driver file
+
+4. `WEBAPI_CACERTS_FILE`:
+   - Only needed for LDAP/Snowflake
+   - Path to Java keystore file
+
+## Section 4: Atlas Security Settings
+
+Configure if using authentication:
+
+1. `ATLAS_SECURITY_PROVIDER_TYPE`:
+   - Options: "ad" (Active Directory), "db" (Database), "ldap", or others
+   - Example: "db" for database authentication
+
+2. `ATLAS_SECURITY_PROVIDER_NAME`:
+   - Display name for login screen
+   - Example: "Database Security"
+
+3. `ATLAS_SECURITY_USE_FORM`:
+   - Usually set to "true" for form-based login
+   - Set to "false" for other authentication methods
+
+## Section 5: WebAPI Security Settings
+
+Corresponds to Atlas security:
+
+1. `WEBAPI_SECURITY_PROVIDER`:
+   - Must match Atlas settings
+   - Example: "AtlasRegularSecurity" for database auth
+
+2. `SECURITY_AUTH_JDBC_ENABLED`:
+   - Set to "true" if using database authentication
+   - Set to "false" for other methods
+
+## Section 6: Git Build Settings
+
+Only needed if building from source:
+
+1. `ATLAS_GIT_URL`:
+   - GitHub URL for Atlas source
+   - Can include branch/commit after "#"
+
+2. `WEBAPI_GIT_URL`:
+   - GitHub URL for WebAPI source
+   - Can include branch/commit after "#"
+
+## Section 7: SOLR Configuration
+
+For vocabulary search:
+
+1. `VOCAB_SOLR_URL`:
+   - URL to SOLR instance
+   - Example: "http://broadsea-solr:8983/solr"
+
+2. `VOCAB_SCHEMA`:
+   - Schema name containing OMOP vocabulary
+   - Must match WebAPI configuration
+
+## Section 8: HADES Configuration
+
+For R environment:
+
+1. `HADES_USER`:
+   - Username for RStudio
+   - Default is "ohdsi"
+
+2. `HADES_PASSWORD_FILE`:
+   - Path to file containing RStudio password
+   - Example: "./secrets/hades/HADES_PASSWORD"
+
+## Section 9: OMOP Vocabulary Loading
+
+For loading vocabulary into PostgreSQL:
+
+1. `UMLS_API_KEY_FILE`:
+   - Path to file containing UMLS API key
+   - Required for CPT4 processing
+
+2. Configure database connection:
+   - Similar to WebAPI database settings
+   - Must point to target vocabulary database
+
+## Additional Sections
+
+The remaining sections (10-18) follow similar patterns for:
+- Phoebe integration
+- Ares configuration
+- Broadsea content page
+- OpenLDAP settings
+- Shiny Server settings
+- Posit Connect
+- DBT configuration
+- Post-processing tools
+- pgAdmin settings
+
+Remember to:
+1. Store all sensitive information in separate files under ./secrets
+2. Use absolute paths when referencing external files
+3. Double-check all database connection settings
+4. Ensure version numbers match between components
+
+# Broadsea Secrets Configuration Guide
+
+## Overview
+
+Broadsea 3.5 uses Docker Secrets to handle sensitive information like passwords and API keys. Each secret should be stored in its own file within the `./secrets` directory structure. This guide explains how to set up these secret files properly.
+
+## Directory Structure
+
+First, create this recommended directory structure:
+
+```
+./secrets/
+├── atlasdb/
+│   ├── ATLASDB_PASSWORD
+│   └── WEBAPI_PASSWORD
+├── cdm/
+│   ├── CDM_PASSWORD
+│   └── RESULTS_PASSWORD
+├── hades/
+│   └── HADES_PASSWORD
+├── ldap/
+│   ├── LDAP_ADMIN_PASSWORD
+│   └── LDAP_CONFIG_PASSWORD
+├── omop/
+│   └── VOCAB_PASSWORD
+├── pgadmin/
+│   └── PGADMIN_PASSWORD
+└── umls/
+    └── UMLS_API_KEY
+```
+
+## Setting Up Secret Files
+
+### General Rules
+1. Each file should contain ONLY the secret value
+2. No newlines, spaces, or special characters unless required
+3. Files should not have extensions
+4. Use appropriate file permissions (readable only by owner)
+
+### Step-by-Step Instructions
+
+1. **Create Base Directory**
+   ```bash
+   mkdir -p ./secrets
+   ```
+
+2. **Create Subdirectories**
+   ```bash
+   cd ./secrets
+   mkdir atlasdb cdm hades ldap omop pgadmin umls
+   ```
+
+3. **Set Directory Permissions**
+   ```bash
+   chmod 700 ./secrets
+   ```
+
+4. **Create and Populate Secret Files**
+
+#### Atlas Database Secrets
+```bash
+# Create ATLASDB_PASSWORD file
+echo "your_atlas_db_password" > ./secrets/atlasdb/ATLASDB_PASSWORD
+chmod 600 ./secrets/atlasdb/ATLASDB_PASSWORD
+
+# Create WEBAPI_PASSWORD file
+echo "your_webapi_password" > ./secrets/atlasdb/WEBAPI_PASSWORD
+chmod 600 ./secrets/atlasdb/WEBAPI_PASSWORD
+```
+
+#### CDM Database Secrets
+```bash
+# Create CDM_PASSWORD file
+echo "your_cdm_password" > ./secrets/cdm/CDM_PASSWORD
+chmod 600 ./secrets/cdm/CDM_PASSWORD
+
+# Create RESULTS_PASSWORD file
+echo "your_results_password" > ./secrets/cdm/RESULTS_PASSWORD
+chmod 600 ./secrets/cdm/RESULTS_PASSWORD
+```
+
+#### HADES (RStudio) Secret
+```bash
+# Create HADES_PASSWORD file
+echo "your_rstudio_password" > ./secrets/hades/HADES_PASSWORD
+chmod 600 ./secrets/hades/HADES_PASSWORD
+```
+
+#### LDAP Secrets
+```bash
+# Create LDAP_ADMIN_PASSWORD file
+echo "your_ldap_admin_password" > ./secrets/ldap/LDAP_ADMIN_PASSWORD
+chmod 600 ./secrets/ldap/LDAP_ADMIN_PASSWORD
+
+# Create LDAP_CONFIG_PASSWORD file
+echo "your_ldap_config_password" > ./secrets/ldap/LDAP_CONFIG_PASSWORD
+chmod 600 ./secrets/ldap/LDAP_CONFIG_PASSWORD
+```
+
+#### OMOP Vocabulary Secret
+```bash
+# Create VOCAB_PASSWORD file
+echo "your_vocab_password" > ./secrets/omop/VOCAB_PASSWORD
+chmod 600 ./secrets/omop/VOCAB_PASSWORD
+```
+
+#### pgAdmin Secret
+```bash
+# Create PGADMIN_PASSWORD file
+echo "your_pgadmin_password" > ./secrets/pgadmin/PGADMIN_PASSWORD
+chmod 600 ./secrets/pgadmin/PGADMIN_PASSWORD
+```
+
+#### UMLS API Key
+```bash
+# Create UMLS_API_KEY file
+echo "your_umls_api_key" > ./secrets/umls/UMLS_API_KEY
+chmod 600 ./secrets/umls/UMLS_API_KEY
+```
+
+## Password Requirements
+
+1. **Atlas/WebAPI Passwords**
+   - Minimum 8 characters
+   - Mix of uppercase, lowercase, numbers
+   - No special characters that need escaping in connection strings
+
+2. **HADES (RStudio) Password**
+   - Minimum 8 characters
+   - At least one number
+   - At least one uppercase letter
+   - At least one lowercase letter
+
+3. **LDAP Passwords**
+   - Minimum 12 characters
+   - Mix of uppercase, lowercase, numbers, special characters
+   - Avoid characters that need escaping in LDAP configs
+
+4. **Database Passwords**
+   - Follow your database system's password requirements
+   - Avoid special characters that need escaping in connection strings
+
+## Verification Steps
+
+After creating all secret files:
+
+1. **Check File Permissions**
+   ```bash
+   ls -la ./secrets/*
+   ```
+   All files should show `600` permissions.
+
+2. **Verify File Contents**
+   ```bash
+   for file in $(find ./secrets -type f); do
+     echo "Checking $file"
+     wc -l $file  # Should show 1 line
+   done
+   ```
+
+3. **Update .env File**
+   - Ensure all paths in .env point to correct secret files
+   - Use absolute paths if deploying in production
+
+## Security Best Practices
+
+1. Never commit secret files to version control
+2. Add `secrets/` to your `.gitignore` file
+3. Create separate passwords for development and production
+4. Rotate passwords regularly in production
+5. Keep backup copies of passwords in a secure password manager
+6. Consider using a secrets management service in production
+
+## Troubleshooting
+
+If services fail to start:
+1. Check file permissions
+2. Verify no extra newlines in secret files
+3. Confirm paths in .env match secret file locations
+4. Check for special characters that might need escaping
+5. Verify file encodings are UTF-8 without BOM
+
+# Broadsea Deployment Scenarios Guide
+
+## Core Deployments
+
+### 1. Local Development
+```env
+BROADSEA_HOST=127.0.0.1
+HTTP_TYPE=http
+DOCKER_ARCH=linux/amd64  # linux/arm64 for Mac Silicon
+ATLAS_VERSION=2.12.0
+ATLAS_USER_AUTH_ENABLED=false
+CDM_HOST=host.docker.internal
+CDM_PORT=5432
+```
+
+Launch: `docker compose --profile default up -d`
+
+### 2. Basic Production
+```env
+BROADSEA_HOST=ohdsi.company.com
+HTTP_TYPE=https
+ATLAS_USER_AUTH_ENABLED=true
+ATLAS_SECURITY_PROVIDER_TYPE=db
+WEBAPI_SECURITY_PROVIDER=AtlasRegularSecurity
+```
+
+Launch: `docker compose --profile default --profile solr-vocab-with-import up -d`
+
+## Cloud Deployments
+
+### 3. AWS Deployment
+```env
+# Basic Configuration
+BROADSEA_HOST=ohdsi.company.aws.com
+HTTP_TYPE=https
+BROADSEA_CERTS_FOLDER=/etc/letsencrypt/live/ohdsi.company.aws.com
+
+# AWS Services
+CDM_HOST=mycdm.xxxxx.region.rds.amazonaws.com
+RESULTS_HOST=myresults.xxxxx.region.rds.amazonaws.com
+WEBAPI_ADDITIONAL_JDBC_FILE_PATH=/jdbc/redshift-jdbc.jar  # For Redshift
+
+# S3 Integration
+HADES_AWS_DEFAULT_REGION=us-east-1
+HADES_AWS_ACCESS_KEY_ID_FILE=./secrets/aws/ACCESS_KEY
+HADES_AWS_SECRET_ACCESS_KEY_FILE=./secrets/aws/SECRET_KEY
+
+# Optional: ElastiCache for SOLR
+VOCAB_SOLR_URL=http://elasticache-solr.xxxxx.region.amazonaws.com:8983/solr
+```
+
+Launch: 
+```bash
+docker compose --profile default \
+  --profile solr-vocab-with-import \
+  --profile open-shiny-server up -d
+```
+
+### 4. Azure Deployment
+```env
+# Basic Configuration
+BROADSEA_HOST=ohdsi.azurewebsites.net
+HTTP_TYPE=https
+BROADSEA_CERTS_FOLDER=/etc/ssl/azure
+
+# Azure SQL Database
+CDM_HOST=myserver.database.windows.net
+CDM_PORT=1433
+CDM_DATABASE=ohdsi
+CDM_USER=@myserver
+WEBAPI_ADDITIONAL_JDBC_FILE_PATH=/jdbc/mssql-jdbc.jar
+
+# Azure AD Integration
+ATLAS_SECURITY_PROVIDER_TYPE=azure-ad
+ATLAS_SECURITY_OAUTH2_CLIENT_ID_FILE=./secrets/azure/CLIENT_ID
+ATLAS_SECURITY_OAUTH2_CLIENT_SECRET_FILE=./secrets/azure/CLIENT_SECRET
+
+# Azure Storage
+HADES_AZURE_STORAGE_ACCOUNT=ohdsistore
+HADES_AZURE_STORAGE_KEY_FILE=./secrets/azure/STORAGE_KEY
+
+# Azure Cache for Redis (Optional)
+VOCAB_SOLR_URL=http://mycache.redis.cache.windows.net:8983/solr
+```
+
+Launch:
+```bash
+docker compose --profile default \
+  --profile solr-vocab-with-import \
+  --profile azure-ad up -d
+```
+
+### 5. Google Cloud Platform Deployment
+```env
+# Basic Configuration
+BROADSEA_HOST=ohdsi.company.cloud.goog
+HTTP_TYPE=https
+BROADSEA_CERTS_FOLDER=/etc/ssl/gcp
+
+# Cloud SQL
+CDM_HOST=/cloudsql/project:region:instance
+CDM_PORT=5432
+WEBAPI_ADDITIONAL_JDBC_FILE_PATH=/jdbc/postgres-socket-factory.jar
+
+# GCP Authentication
+ATLAS_SECURITY_PROVIDER_TYPE=google
+ATLAS_SECURITY_OAUTH2_CLIENT_ID_FILE=./secrets/gcp/CLIENT_ID
+ATLAS_SECURITY_OAUTH2_CLIENT_SECRET_FILE=./secrets/gcp/CLIENT_SECRET
+
+# Google Cloud Storage
+HADES_GCP_PROJECT_ID=my-project
+HADES_GCP_BUCKET=ohdsi-data
+HADES_GCP_KEY_FILE=./secrets/gcp/SERVICE_ACCOUNT.json
+
+# Cloud Memorystore (Optional)
+VOCAB_SOLR_URL=http://memorystore-solr.company.internal:8983/solr
+```
+
+Launch:
+```bash
+docker compose --profile default \
+  --profile solr-vocab-with-import \
+  --profile gcp-auth up -d
+```
+
+## Specialized Deployments
+
+### 6. High-Performance Research
+```env
+HADES_MEMORY_LIMIT=32g
+HADES_CPU_LIMIT=16
+CDM_MAX_CONNECTIONS=200
+```
+
+Launch: `docker compose --profile default --profile jupyter-notebook up -d`
+
+### 7. ETL Development
+```env
+# Perseus Configuration
+PERSEUS_DB_HOST=host.docker.internal
+PERSEUS_DB_NAME=perseus
+WR_CDM_SCHEMA=cdm_staging
+```
+
+Launch: `docker compose --profile perseus --profile white-rabbit up -d`
+
+### 8. Evidence Platform
+```env
+# Application Settings
+OPEN_SHINY_SERVER_PORT=3838
+JUPYTER_PORT=8888
+ACHILLES_CDM_SCHEMA=cdm
+```
+
+Launch: 
+```bash
+docker compose --profile default \
+  --profile open-shiny-server \
+  --profile jupyter-notebook \
+  --profile achilles up -d
+```
+
+## Deployment Checklist
+
+### Pre-deployment
+- [ ] Verify secrets files
+- [ ] Check cloud resource limits
+- [ ] Configure network security
+- [ ] Set up monitoring
+- [ ] Plan backup strategy
+
+### Security Configurations
+- [ ] Enable appropriate authentication
+- [ ] Set up SSL certificates
+- [ ] Configure network policies
+- [ ] Implement access controls
+- [ ] Plan secret rotation
+
+### Monitoring Setup
+```bash
+# Container status
+docker compose ps
+
+# Logs
+docker compose logs -f
+
+# Resource usage
+docker stats
+```
+
+### Cloud-Specific Considerations
+
+#### AWS
+- Use Security Groups for network isolation
+- Consider ECS/EKS for container orchestration
+- Implement AWS CloudWatch monitoring
+- Use AWS Secrets Manager for secrets
+
+#### Azure
+- Use Network Security Groups
+- Consider AKS for container orchestration
+- Implement Azure Monitor
+- Use Azure Key Vault for secrets
+
+#### GCP
+- Use VPC Firewall Rules
+- Consider GKE for container orchestration
+- Implement Cloud Monitoring
+- Use Secret Manager for secrets
+
+### Performance Optimization
+- Monitor container metrics
+- Adjust resource limits
+- Scale horizontally when needed
+- Implement load balancing
+- Use cloud-native caching services
