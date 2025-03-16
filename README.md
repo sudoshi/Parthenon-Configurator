@@ -1,6 +1,6 @@
-# Broadsea Configurator
+# Parthenon Configurator
 
-Broadsea Configurator is a tool designed to simplify the configuration and deployment of the Broadsea stack. This project streamlines the setup process, ensuring a smooth and efficient deployment of OHDSI (Observational Health Data Sciences and Informatics) tools.
+Parthenon Configurator is a tool designed to simplify the configuration and deployment of the Ohdsi/Broadsea stack. This project streamlines the setup process, ensuring a smooth and efficient deployment of OHDSI (Observational Health Data Sciences and Informatics) tools plus ancillary tools like Authentik and Portainer, as well as other dockerized tools for medical informatics data profiling, transformation, and visualization.
 
 ## Features
 
